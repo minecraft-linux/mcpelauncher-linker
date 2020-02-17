@@ -1,3 +1,6 @@
 [submodule "bionic"]
 	path = bionic
 	url = ./bionic
+[submodule "core"]
+	path = core
+	url = ./core/
