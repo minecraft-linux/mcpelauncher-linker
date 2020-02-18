@@ -63,4 +63,7 @@ add_executable(linker_config_test bionic/linker/linker_config_test.cpp bionic/li
 target_compile_definitions(linker_config_test PRIVATE "__LIBC_HIDDEN__=" PAGE_SIZE=4096 PATH_MAX=256 "__unused=")
 target_link_libraries(linker_config_test ${GTEST})
 gtest_discover_tests(linker_config_test)
+
+add_library(linker SHARED bionic/linker/linker_phdr.cpp)
+target_compile_definitions(linker PRIVATE "__LIBC_HIDDEN__=" PAGE_SIZE=4096 PATH_MAX=256 "__unused=")
 endif()
