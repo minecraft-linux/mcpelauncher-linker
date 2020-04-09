@@ -340,9 +340,11 @@ struct _hook main_hooks[] = {
     {"setjmp", _setjmp},
     {"longjmp", longjmp},
 #endif
-    // {"__umoddi3", __umoddi3},
-    // {"__udivdi3", __udivdi3},
-    // {"__divdi3", __divdi3},
+#if !defined(__x86_64__) // Only needed and available in 32bit mode
+    {"__umoddi3", __umoddi3},
+    {"__udivdi3", __udivdi3},
+    {"__divdi3", __divdi3},
+#endif
     /* stdlib.h */
     // {"__ctype_get_mb_cur_max", __ctype_get_mb_cur_max},
 #ifndef AVOID_FLOAT_POINT_HOOKS
