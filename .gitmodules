@@ -1,6 +1,12 @@
 [submodule "bionic"]
 	path = bionic
-	url = ../android_bionic
+	url = https://github.com/ChristopherHX/android_bionic
 [submodule "core"]
 	path = core
 	url = https://android.googlesource.com/platform/system/core
+[submodule "logger"]
+	path = logger
+	url = https://github.com/minecraft-linux/logger
+[submodule "libjnivm"]
+	path = libjnivm
+	url = https://github.com/ChristopherHX/libjnivm
