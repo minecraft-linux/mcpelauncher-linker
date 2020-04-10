@@ -185,9 +185,10 @@ static void _hybris_shm_extend_region()
   */
 int hybris_is_pointer_in_shm(void *ptr)
 {
+#ifndef __x86_64__
     if ((intptr_t)ptr >= HYBRIS_SHM_MASK)
         return 1;
-
+#endif
     return 0;
 }
 
