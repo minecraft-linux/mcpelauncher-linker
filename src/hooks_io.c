@@ -269,6 +269,13 @@ static FILE *_get_actual_fp(struct aFILE *fp)
         return stdout;
     else if (c_fp == &my_sF[BIONIC_SIZEOF_FILE*2])
         return stderr;
+// Workaround bad pointer in init
+// Needs to be fixed later
+#ifdef __x86_64__
+    if(c_fp < my_sF) {
+        return stdout;
+    }
+#endif
 
     return fp->actual;
 }
