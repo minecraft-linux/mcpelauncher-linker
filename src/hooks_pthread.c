@@ -1056,6 +1056,10 @@ static int darwin_my_sem_post(struct darwin_my_sem_info **sem) {
     return semaphore_signal((*sem)->sem);
 }
 
+int pthread_condattr_setclock() {
+    return 0;
+}
+
 #endif
 
 struct _hook pthread_hooks[] = {

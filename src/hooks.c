@@ -20,7 +20,6 @@
 #include <time.h>
 
 #include "../include/hybris/binding.h"
-#include "../bionic/libc/bionic/stdlib_l.cpp"
 
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
@@ -85,6 +84,8 @@
 #include "../include/hybris/hook.h"
 #include "../include/hybris/properties.h"
 #include "ctype.h"
+
+#include "../bionic/libc/bionic/stdlib_l.cpp"
 
 static locale_t hybris_locale;
 static int locale_inited = 0;
@@ -296,7 +297,7 @@ static void my_assert2(const char* file, int line, const char* function, const c
     fprintf(stderr, "%s:%u: %s: assertion \"%s\" failed", file, line, function, msg);
     abort();
 }
-static void my_assert(const char* file, int line, const char* msg) {
+void my_assert(const char* file, int line, const char* msg) {
     fprintf(stderr, "%s:%u: assertion \"%s\" failed", file, line, msg);
     abort();
 }
