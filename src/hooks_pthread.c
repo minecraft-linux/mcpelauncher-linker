@@ -115,7 +115,7 @@ static pthread_rwlock_t* hybris_alloc_init_rwlock(void)
  *
  * */
 
-static int my_pthread_create(pthread_t *thread, const pthread_attr_t *__attr,
+int my_pthread_create(pthread_t *thread, const pthread_attr_t *__attr,
                              void *(*start_routine)(void*), void *arg)
 {
     pthread_attr_t *realattr = NULL;
@@ -783,6 +783,7 @@ static int my_pthread_rwlock_destroy(pthread_rwlock_t *__rwlock)
 
 static pthread_rwlock_t* hybris_set_realrwlock(pthread_rwlock_t *rwlock)
 {
+    printf("hybris_set_realrwlock %llu\n", (unsigned long long)rwlock);
     intptr_t value = (*(intptr_t *) rwlock);
     pthread_rwlock_t *realrwlock = (pthread_rwlock_t *) value;
     if (hybris_is_pointer_in_shm((void*)value))
@@ -797,24 +798,28 @@ static pthread_rwlock_t* hybris_set_realrwlock(pthread_rwlock_t *rwlock)
 
 static int my_pthread_rwlock_rdlock(pthread_rwlock_t *__rwlock)
 {
+    printf("my_pthread_rwlock_rdlock\n");
     pthread_rwlock_t *realrwlock = hybris_set_realrwlock(__rwlock);
     return pthread_rwlock_rdlock(realrwlock);
 }
 
 static int my_pthread_rwlock_tryrdlock(pthread_rwlock_t *__rwlock)
 {
+    printf("my_pthread_rwlock_tryrdlock\n");
     pthread_rwlock_t *realrwlock = hybris_set_realrwlock(__rwlock);
     return pthread_rwlock_tryrdlock(realrwlock);
 }
 
 static int my_pthread_rwlock_wrlock(pthread_rwlock_t *__rwlock)
 {
+    printf("my_pthread_rwlock_wrlock\n");
     pthread_rwlock_t *realrwlock = hybris_set_realrwlock(__rwlock);
     return pthread_rwlock_wrlock(realrwlock);
 }
 
 static int my_pthread_rwlock_trywrlock(pthread_rwlock_t *__rwlock)
 {
+    printf("my_pthread_rwlock_trywrlock\n");
     pthread_rwlock_t *realrwlock = hybris_set_realrwlock(__rwlock);
     return pthread_rwlock_trywrlock(realrwlock);
 }

@@ -35,4 +35,15 @@ void my_assert(const char* file, int line, const char* msg);
 #define PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP PTHREAD_RECURSIVE_MUTEX_INITIALIZER
 #include <libgen.h>
 #define basename(name) basename((char*)name)
+#define PAGE_SIZE 4096
+#define PAGE_MASK (~(PAGE_SIZE - 1))
+// Returns the address of the page containing address 'x'.
+#define PAGE_START(x) ((x) & PAGE_MASK)
+
+// Returns the offset of address 'x' in its page.
+#define PAGE_OFFSET(x) ((x) & ~PAGE_MASK)
+
+// Returns the address of the next page after address 'x', unless 'x' is
+// itself at the start of a page.
+#define PAGE_END(x) PAGE_START((x) + (PAGE_SIZE-1))
 #endif

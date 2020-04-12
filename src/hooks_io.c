@@ -452,6 +452,12 @@ static void my_setbuf(struct aFILE* fp, char *buf)
 
 static int my_setvbuf(struct aFILE* fp, char *buf, int mode, size_t size)
 {
+#ifdef __x86_64__
+    // if(fp < my_sF) {
+        printf("FATAL %s %llx", "my_setvbuf", (long long)fp);
+        return 0;
+    // }
+#endif
     return setvbuf(_get_actual_fp(fp), buf, mode, size);
 }
 
