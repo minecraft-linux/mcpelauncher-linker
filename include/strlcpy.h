@@ -1,4 +1,6 @@
 #include <string.h>
+#define PAGE_SIZE 4096
+#define PAGE_MASK (~(PAGE_SIZE - 1))
 #ifndef __APPLE__
 #define DEF_WEAK(a)
 #define __BIONIC_ALIGN(__value, __alignment) (((__value) + (__alignment)-1) & ~((__alignment)-1))
@@ -35,8 +37,6 @@ void my_assert(const char* file, int line, const char* msg);
 #define PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP PTHREAD_RECURSIVE_MUTEX_INITIALIZER
 #include <libgen.h>
 #define basename(name) basename((char*)name)
-#define PAGE_SIZE 4096
-#define PAGE_MASK (~(PAGE_SIZE - 1))
 // Returns the address of the page containing address 'x'.
 #define PAGE_START(x) ((x) & PAGE_MASK)
 

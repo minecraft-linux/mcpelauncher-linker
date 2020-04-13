@@ -101,7 +101,7 @@ static int locale_inited = 0;
 
 uintptr_t _hybris_stack_chk_guard = 0;
 
-#ifndef __APPLE__
+#if 0
 static void __attribute__((constructor)) __init_stack_check_guard() {
     _hybris_stack_chk_guard = *((uintptr_t*) getauxval(AT_RANDOM));
 }
