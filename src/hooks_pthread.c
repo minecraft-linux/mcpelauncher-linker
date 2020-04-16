@@ -8,11 +8,11 @@
 #include <mach/mach_init.h>
 #include <mach/task.h>
 #include <mach/semaphore.h>
-#include "hooks_darwin_pthread_once.h"
 #else
 #include <sys/syscall.h>
 #include <sys/auxv.h>
 #endif
+#include "hooks_darwin_pthread_once.h"
 #include "../include/hybris/hook.h"
 #include "hooks_shm.h"
 
@@ -1127,7 +1127,7 @@ struct _hook pthread_hooks[] = {
 #endif
     {"pthread_key_delete", pthread_key_delete},
     // {"pthread_setname_np", pthread_setname_np},
-#ifdef __APPLE__
+#ifndef __APPLE__
     {"pthread_once", darwin_my_pthread_once},
 #else
     {"pthread_once", pthread_once},
