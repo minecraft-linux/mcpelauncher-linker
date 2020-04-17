@@ -752,6 +752,7 @@ static int my_pthread_rwlock_init(pthread_rwlock_t *__rwlock,
         *((intptr_t *) __rwlock) = (intptr_t) realrwlock;
     }
     else {
+        abort();
         /* process-shared condition: use the shared memory segment */
         hybris_shm_pointer_t handle = hybris_shm_alloc(sizeof(pthread_rwlock_t));
 
@@ -783,7 +784,7 @@ static int my_pthread_rwlock_destroy(pthread_rwlock_t *__rwlock)
 
 static pthread_rwlock_t* hybris_set_realrwlock(pthread_rwlock_t *rwlock)
 {
-    printf("hybris_set_realrwlock %llu\n", (unsigned long long)rwlock);
+    // printf("hybris_set_realrwlock %llu\n", (unsigned long long)rwlock);
     intptr_t value = (*(intptr_t *) rwlock);
     pthread_rwlock_t *realrwlock = (pthread_rwlock_t *) value;
     if (hybris_is_pointer_in_shm((void*)value))
@@ -798,30 +799,48 @@ static pthread_rwlock_t* hybris_set_realrwlock(pthread_rwlock_t *rwlock)
 
 static int my_pthread_rwlock_rdlock(pthread_rwlock_t *__rwlock)
 {
-    printf("my_pthread_rwlock_rdlock\n");
+    // printf("my_pthread_rwlock_rdlock\n");
     pthread_rwlock_t *realrwlock = hybris_set_realrwlock(__rwlock);
     return pthread_rwlock_rdlock(realrwlock);
 }
 
 static int my_pthread_rwlock_tryrdlock(pthread_rwlock_t *__rwlock)
 {
-    printf("my_pthread_rwlock_tryrdlock\n");
+    // printf("my_pthread_rwlock_tryrdlock\n");
     pthread_rwlock_t *realrwlock = hybris_set_realrwlock(__rwlock);
     return pthread_rwlock_tryrdlock(realrwlock);
 }
 
 static int my_pthread_rwlock_wrlock(pthread_rwlock_t *__rwlock)
 {
-    printf("my_pthread_rwlock_wrlock\n");
+    // printf("my_pthread_rwlock_wrlock\n");
     pthread_rwlock_t *realrwlock = hybris_set_realrwlock(__rwlock);
     return pthread_rwlock_wrlock(realrwlock);
 }
 
 static int my_pthread_rwlock_trywrlock(pthread_rwlock_t *__rwlock)
 {
-    printf("my_pthread_rwlock_trywrlock\n");
+    // printf("my_pthread_rwlock_trywrlock\n");
     pthread_rwlock_t *realrwlock = hybris_set_realrwlock(__rwlock);
     return pthread_rwlock_trywrlock(realrwlock);
+}
+#include <limits.h>
+
+int my_pthread_key_create(int *key, void (* des)(void *)) {
+    pthread_key_t hkey;
+    int ret = pthread_key_create(&hkey, des);
+    if (hkey > INT_MAX)
+        abort();
+    *key = hkey;
+    return ret;
+}
+
+void* my_pthread_getspecific(int key) {
+    return pthread_getspecific((pthread_key_t)key);
+}
+
+int my_pthread_setspecific(int key, const void* value) {
+    return pthread_setspecific((pthread_key_t)key, value);
 }
 
 #ifndef __APPLE__
@@ -1132,9 +1151,9 @@ struct _hook pthread_hooks[] = {
 #else
     {"pthread_once", pthread_once},
 #endif
-    {"pthread_key_create", pthread_key_create},
-    {"pthread_setspecific", pthread_setspecific},
-    {"pthread_getspecific", pthread_getspecific},
+    {"pthread_key_create", my_pthread_key_create},
+    {"pthread_setspecific", my_pthread_setspecific},
+    {"pthread_getspecific", my_pthread_getspecific},
     {"pthread_attr_init", my_pthread_attr_init},
     {"pthread_attr_destroy", my_pthread_attr_destroy},
     {"pthread_attr_setdetachstate", my_pthread_attr_setdetachstate},
