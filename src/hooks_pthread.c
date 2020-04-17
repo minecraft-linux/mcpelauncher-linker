@@ -783,7 +783,7 @@ static int my_pthread_rwlock_destroy(pthread_rwlock_t *__rwlock)
 
 static pthread_rwlock_t* hybris_set_realrwlock(pthread_rwlock_t *rwlock)
 {
-    printf("hybris_set_realrwlock %llu\n", (unsigned long long)rwlock);
+    // printf("hybris_set_realrwlock %llu\n", (unsigned long long)rwlock);
     intptr_t value = (*(intptr_t *) rwlock);
     pthread_rwlock_t *realrwlock = (pthread_rwlock_t *) value;
     if (hybris_is_pointer_in_shm((void*)value))
@@ -798,28 +798,28 @@ static pthread_rwlock_t* hybris_set_realrwlock(pthread_rwlock_t *rwlock)
 
 static int my_pthread_rwlock_rdlock(pthread_rwlock_t *__rwlock)
 {
-    printf("my_pthread_rwlock_rdlock\n");
+    // printf("my_pthread_rwlock_rdlock\n");
     pthread_rwlock_t *realrwlock = hybris_set_realrwlock(__rwlock);
     return pthread_rwlock_rdlock(realrwlock);
 }
 
 static int my_pthread_rwlock_tryrdlock(pthread_rwlock_t *__rwlock)
 {
-    printf("my_pthread_rwlock_tryrdlock\n");
+    // printf("my_pthread_rwlock_tryrdlock\n");
     pthread_rwlock_t *realrwlock = hybris_set_realrwlock(__rwlock);
     return pthread_rwlock_tryrdlock(realrwlock);
 }
 
 static int my_pthread_rwlock_wrlock(pthread_rwlock_t *__rwlock)
 {
-    printf("my_pthread_rwlock_wrlock\n");
+    // printf("my_pthread_rwlock_wrlock\n");
     pthread_rwlock_t *realrwlock = hybris_set_realrwlock(__rwlock);
     return pthread_rwlock_wrlock(realrwlock);
 }
 
 static int my_pthread_rwlock_trywrlock(pthread_rwlock_t *__rwlock)
 {
-    printf("my_pthread_rwlock_trywrlock\n");
+    // printf("my_pthread_rwlock_trywrlock\n");
     pthread_rwlock_t *realrwlock = hybris_set_realrwlock(__rwlock);
     return pthread_rwlock_trywrlock(realrwlock);
 }
@@ -1013,7 +1013,7 @@ struct darwin_my_sem_info {
 };
 static int darwin_my_sem_init(struct darwin_my_sem_info **sem, int pshared, intptr_t value) {
     if (pshared) {
-        printf("sem_init: pshared not supported\n");
+        // printf("sem_init: pshared not supported\n");
     }
     *sem = malloc(sizeof(struct darwin_my_sem_info));
     kern_return_t res = semaphore_create(mach_task_self(), &(*sem)->sem, SYNC_POLICY_FIFO, value);

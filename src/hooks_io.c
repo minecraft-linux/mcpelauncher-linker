@@ -271,13 +271,13 @@ static FILE *_get_actual_fp(struct aFILE *fp)
         return stderr;
 // Workaround bad pointer in init
 // Needs to be fixed later
-// #ifdef __x86_64__
+#ifdef __x86_64__
     if(c_fp < my_sF) {
         return stdout;
     }
-// #endif
+#endif
 
-    return fp->actual;
+    return fp->actual ? fp->actual : stdout;
 }
 
 static void my_clearerr(struct aFILE *fp)
