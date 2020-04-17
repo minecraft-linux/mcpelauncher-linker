@@ -8,11 +8,11 @@
 #include <mach/mach_init.h>
 #include <mach/task.h>
 #include <mach/semaphore.h>
+#include "hooks_darwin_pthread_once.h"
 #else
 #include <sys/syscall.h>
 #include <sys/auxv.h>
 #endif
-#include "hooks_darwin_pthread_once.h"
 #include "../include/hybris/hook.h"
 #include "hooks_shm.h"
 
@@ -278,6 +278,11 @@ static pthread_mutexattr_t *hybris_get_real_mutexattr(__const pthread_mutexattr_
     pthread_mutexattr_t *realattr = (pthread_mutexattr_t *) *(intptr_t *) attr;
     return realattr;
 }
+pthread_condattr_t * hybris_get_real_condattr(__const pthread_condattr_t *__attr) {
+    if (!__attr)
+        return NULL;
+    return (pthread_condattr_t *)*((intptr_t *) __attr);
+}
 #endif
 
 static int my_pthread_mutex_init(pthread_mutex_t *__mutex,
@@ -475,6 +480,10 @@ static int my_pthread_cond_init(pthread_cond_t *cond,
                                 const pthread_condattr_t *attr)
 {
     pthread_cond_t *realcond = NULL;
+
+#ifdef __APPLE__
+    attr = (pthread_condattr_t*)hybris_get_real_condattr(attr);
+#endif
 
     int pshared = PTHREAD_PROCESS_PRIVATE;
 
@@ -752,6 +761,7 @@ static int my_pthread_rwlock_init(pthread_rwlock_t *__rwlock,
         *((intptr_t *) __rwlock) = (intptr_t) realrwlock;
     }
     else {
+        abort();
         /* process-shared condition: use the shared memory segment */
         hybris_shm_pointer_t handle = hybris_shm_alloc(sizeof(pthread_rwlock_t));
 
@@ -822,6 +832,24 @@ static int my_pthread_rwlock_trywrlock(pthread_rwlock_t *__rwlock)
     // printf("my_pthread_rwlock_trywrlock\n");
     pthread_rwlock_t *realrwlock = hybris_set_realrwlock(__rwlock);
     return pthread_rwlock_trywrlock(realrwlock);
+}
+#include <limits.h>
+
+int my_pthread_key_create(int *key, void (* des)(void *)) {
+    pthread_key_t hkey;
+    int ret = pthread_key_create(&hkey, des);
+    if (hkey > INT_MAX)
+        abort();
+    *key = hkey;
+    return ret;
+}
+
+void* my_pthread_getspecific(int key) {
+    return pthread_getspecific((pthread_key_t)key);
+}
+
+int my_pthread_setspecific(int key, const void* value) {
+    return pthread_setspecific((pthread_key_t)key, value);
 }
 
 #ifndef __APPLE__
@@ -925,6 +953,44 @@ static int darwin_my_pthread_mutexattr_setpshared(pthread_mutexattr_t *__attr,
     return pthread_mutexattr_setpshared(__attr, pshared);
 }
 
+static int darwin_my_pthread_condattr_init(pthread_condattr_t *__attr)
+{
+    pthread_condattr_t *attr = malloc(sizeof(pthread_condattr_t));
+    *((intptr_t *) __attr) = (intptr_t) attr;
+    return pthread_condattr_init(attr);
+}
+
+static int darwin_my_pthread_condattr_destroy(pthread_condattr_t *__attr)
+{
+    pthread_condattr_t *attr = hybris_get_real_condattr(__attr);
+    int ret = pthread_condattr_destroy(attr);
+    free(attr);
+    return ret;
+}
+
+int pthread_condattr_setclock(pthread_condattr_t *attr,
+clockid_t clock_id) {
+    printf("pthread_condattr_setclock\n");
+    return 0;
+}
+
+static int darwin_my_pthread_cond_attr_getpshared(pthread_condattr_t *__attr,
+                                                  int *pshared)
+{
+    int ret = pthread_condattr_getpshared(hybris_get_real_condattr(__attr), pshared);
+    if (*pshared == PTHREAD_PROCESS_PRIVATE)
+        *pshared = 0;
+    else if (*pshared == PTHREAD_PROCESS_SHARED)
+        *pshared = 1;
+    return ret;
+}
+
+static int darwin_my_pthread_condattr_setpshared(pthread_condattr_t *__attr,
+                                                  int pshared)
+{
+    pshared = pshared == 1 ? PTHREAD_PROCESS_SHARED : PTHREAD_PROCESS_PRIVATE;
+    return pthread_condattr_setpshared(__attr, pshared);
+}
 
 struct bionic_sched_param {
     int sched_priority;
@@ -1013,7 +1079,7 @@ struct darwin_my_sem_info {
 };
 static int darwin_my_sem_init(struct darwin_my_sem_info **sem, int pshared, intptr_t value) {
     if (pshared) {
-        // printf("sem_init: pshared not supported\n");
+        printf("sem_init: pshared not supported\n");
     }
     *sem = malloc(sizeof(struct darwin_my_sem_info));
     kern_return_t res = semaphore_create(mach_task_self(), &(*sem)->sem, SYNC_POLICY_FIFO, value);
@@ -1061,10 +1127,6 @@ static int darwin_my_sem_post(struct darwin_my_sem_info **sem) {
     return semaphore_signal((*sem)->sem);
 }
 
-int pthread_condattr_setclock() {
-    return 0;
-}
-
 #endif
 
 struct _hook pthread_hooks[] = {
@@ -1101,6 +1163,11 @@ struct _hook pthread_hooks[] = {
     {"pthread_mutexattr_settype", darwin_my_pthread_mutexattr_settype},
     {"pthread_mutexattr_getpshared", darwin_my_pthread_mutexattr_getpshared},
     {"pthread_mutexattr_setpshared", darwin_my_pthread_mutexattr_setpshared},
+    {"pthread_condattr_init", darwin_my_pthread_condattr_init},
+    {"pthread_condattr_getpshared", darwin_my_pthread_cond_attr_getpshared},
+    {"pthread_condattr_setpshared", darwin_my_pthread_condattr_setpshared},
+    {"pthread_condattr_setclock", pthread_condattr_setclock},
+    {"pthread_condattr_destroy", darwin_my_pthread_condattr_destroy},
 #else
     {"pthread_mutexattr_init", pthread_mutexattr_init},
     {"pthread_mutexattr_destroy", pthread_mutexattr_destroy},
@@ -1108,12 +1175,12 @@ struct _hook pthread_hooks[] = {
     {"pthread_mutexattr_settype", pthread_mutexattr_settype},
     {"pthread_mutexattr_getpshared", pthread_mutexattr_getpshared},
     {"pthread_mutexattr_setpshared", pthread_mutexattr_setpshared},
-#endif
     {"pthread_condattr_init", pthread_condattr_init},
     {"pthread_condattr_getpshared", pthread_condattr_getpshared},
     {"pthread_condattr_setpshared", pthread_condattr_setpshared},
     {"pthread_condattr_setclock", pthread_condattr_setclock},
     {"pthread_condattr_destroy", pthread_condattr_destroy},
+#endif
     {"pthread_cond_init", my_pthread_cond_init},
     {"pthread_cond_destroy", my_pthread_cond_destroy},
     {"pthread_cond_broadcast", my_pthread_cond_broadcast},
@@ -1127,14 +1194,14 @@ struct _hook pthread_hooks[] = {
 #endif
     {"pthread_key_delete", pthread_key_delete},
     // {"pthread_setname_np", pthread_setname_np},
-#ifndef __APPLE__
+#ifdef __APPLE__
     {"pthread_once", darwin_my_pthread_once},
 #else
     {"pthread_once", pthread_once},
 #endif
-    {"pthread_key_create", pthread_key_create},
-    {"pthread_setspecific", pthread_setspecific},
-    {"pthread_getspecific", pthread_getspecific},
+    {"pthread_key_create", my_pthread_key_create},
+    {"pthread_setspecific", my_pthread_setspecific},
+    {"pthread_getspecific", my_pthread_getspecific},
     {"pthread_attr_init", my_pthread_attr_init},
     {"pthread_attr_destroy", my_pthread_attr_destroy},
     {"pthread_attr_setdetachstate", my_pthread_attr_setdetachstate},
