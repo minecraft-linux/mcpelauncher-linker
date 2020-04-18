@@ -20,7 +20,6 @@
 
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
-#define __USE_GNU
 #endif
 
 #include <stddef.h>
@@ -185,10 +184,10 @@ static void _hybris_shm_extend_region()
   */
 int hybris_is_pointer_in_shm(void *ptr)
 {
-// #ifndef __x86_64__
-//     if ((intptr_t)ptr >= HYBRIS_SHM_MASK)
-//         return 1;
-// #endif
+#ifndef __x86_64__
+    if ((uintptr_t)ptr >= HYBRIS_SHM_MASK)
+        return 1;
+#endif
     return 0;
 }
 
@@ -210,7 +209,7 @@ void *hybris_get_shmpointer(hybris_shm_pointer_t handle)
         _sync_mmap_with_shm();  /* make sure our mmap is sync'ed */
 
         if (_hybris_shm_data != NULL) {
-            intptr_t offset = handle & (~HYBRIS_SHM_MASK);
+            uintptr_t offset = handle & (~HYBRIS_SHM_MASK);
             realpointer = &(_hybris_shm_data->data) + offset;
 
             /* Be careful when activating this trace: this method is called *a lot* !
