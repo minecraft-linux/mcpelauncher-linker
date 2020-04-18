@@ -16,15 +16,12 @@
  * limitations under the License.
  *
  */
-#define _XOPEN_SOURCE
-#include <time.h>
 
 #include "../include/hybris/binding.h"
 
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
-
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -85,8 +82,6 @@
 #include "../include/hybris/properties.h"
 #include "ctype.h"
 
-#include "../bionic/libc/bionic/stdlib_l.cpp"
-
 static locale_t hybris_locale;
 static int locale_inited = 0;
 
@@ -101,7 +96,7 @@ static int locale_inited = 0;
 
 uintptr_t _hybris_stack_chk_guard = 0;
 
-#if 0
+#ifdef __linux__
 static void __attribute__((constructor)) __init_stack_check_guard() {
     _hybris_stack_chk_guard = *((uintptr_t*) getauxval(AT_RANDOM));
 }
@@ -246,7 +241,7 @@ FP_ATTRIB static double my_strtod(const char *nptr, char **endptr)
 		hybris_locale = newlocale(LC_ALL_MASK, "C", 0);
 		locale_inited = 1;
 	}
-	return strtod/* _l */(nptr, endptr/* , hybris_locale */);
+	return strtod_l(nptr, endptr, hybris_locale);
 }
 
 extern int __cxa_atexit(void (*)(void*), void*, void*);
@@ -428,7 +423,7 @@ struct _hook main_hooks[] = {
     // {"mkstemps", mkstemps},
     // {"mkstemps64", mkstemps64},
     {"mkdtemp", mkdtemp},
-    // {"mkostemp", mkostemp},
+    {"mkostemp", mkostemp},
     // {"mkostemp64", mkostemp64},
     // {"mkostemps", mkostemps},
     // {"mkostemps64", mkostemps64},
@@ -437,7 +432,7 @@ struct _hook main_hooks[] = {
     {"realpath", realpath},
     {"bsearch", bsearch},
     {"qsort", qsort},
-    // {"qsort_r", qsort_r},
+    {"qsort_r", qsort_r},
     {"abs", abs},
     {"labs", labs},
     {"llabs", llabs},
@@ -464,10 +459,10 @@ struct _hook main_hooks[] = {
     {"wcsrtombs", wcsrtombs},
     // {"rpmatch", rpmatch},
     {"getsubopt", getsubopt},
-    // {"posix_openpt", posix_openpt},
-    // {"grantpt", grantpt},
-    // {"unlockpt", unlockpt},
-    // {"ptsname", ptsname},
+    {"posix_openpt", posix_openpt},
+    {"grantpt", grantpt},
+    {"unlockpt", unlockpt},
+    {"ptsname", ptsname},
     // {"ptsname_r", ptsname_r},
     // {"getpt", getpt},
     {"getloadavg", getloadavg},
@@ -479,7 +474,7 @@ struct _hook main_hooks[] = {
     {"memcpy",my_memcpy},
     {"memmove",memmove},
     {"memset",memset},
-    // {"memmem",memmem},
+    {"memmem",memmem},
     // {"memswap",memswap},
     {"strchr",strchr},
     {"strrchr",strrchr},
@@ -665,16 +660,16 @@ struct _hook main_hooks[] = {
 #else
     {"fdatasync", fdatasync},
 #endif
-    // {"swab", swab},
+    {"swab", swab},
     /* time.h */
     {"clock", clock},
     {"time", time},
     {"difftime", difftime},
     {"mktime", mktime},
     {"strftime", strftime},
-    // {"strptime", strptime},
+    {"strptime", strptime},
     {"strftime_l", strftime_l},
-    // {"strptime_l", strptime_l},
+    {"strptime_l", strptime_l},
     {"gmtime", gmtime},
     {"localtime", localtime},
     {"gmtime_r", gmtime_r},
