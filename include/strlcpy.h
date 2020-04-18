@@ -35,6 +35,7 @@ void my_assert(const char* file, int line, const char* msg);
 #  define mmap64 mmap
 #  define pread64 pread
 #define PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP PTHREAD_RECURSIVE_MUTEX_INITIALIZER
+#define __LIBC_HIDDEN__
 #include <libgen.h>
 #define basename(name) basename((char*)name)
 // Returns the address of the page containing address 'x'.
