@@ -28,8 +28,10 @@ struct open_redirect open_redirects[] = {
         { NULL, NULL }
 };
 
+#ifdef _LP64
 #define stat64 stat
 #define fstat64 fstat
+#endif
 
 #ifdef __APPLE__
 
@@ -89,7 +91,7 @@ struct bionic_stat64 {
     unsigned long long st_dev;
     unsigned char __pad0[4];
     unsigned long __st_ino;
-    intptr_t st_mode;
+    unsigned int st_mode;
     nlink_t st_nlink;
     uid_t st_uid;
     gid_t st_gid;
@@ -130,7 +132,11 @@ void stat_to_bionic_stat(struct stat *s, struct bionic_stat64 *b) {
 #ifndef __APPLE__
 void stat64_to_bionic_stat(struct stat64 *s, struct bionic_stat64 *b) {
     b->st_dev = s->st_dev;
+#ifdef _LP64
     b->__st_ino = s->st_ino;
+#else
+    b->__st_ino = s->__st_ino;
+#endif
     b->st_mode = s->st_mode;
     b->st_nlink = s->st_nlink;
     b->st_uid = s->st_uid;
@@ -139,9 +145,9 @@ void stat64_to_bionic_stat(struct stat64 *s, struct bionic_stat64 *b) {
     b->st_size = s->st_size;
     b->st_blksize = (unsigned long) s->st_blksize;
     b->st_blocks = (unsigned long long) s->st_blocks;
-    // b->st_atim = s->st_atime;
-    // b->st_mtim = s->st_mtime;
-    // b->st_ctim = s->st_ctime;
+    b->st_atim = s->st_atim;
+    b->st_mtim = s->st_mtim;
+    b->st_ctim = s->st_ctim;
     b->st_ino = s->st_ino;
 }
 #endif
@@ -626,7 +632,7 @@ struct _hook io_hooks[] = {
     {"fstat64", my_fstat64},
 #endif
     {"chmod", chmod},
-    // {"fchmod", fchmod},
+    {"fchmod", fchmod},
     {"umask", umask},
     {"mkdir", mkdir},
     /* stdio.h */
@@ -634,13 +640,13 @@ struct _hook io_hooks[] = {
     {"__sF", &my_sF},
     {"fopen", my_fopen},
     {"fdopen", my_fdopen},
-    // {"popen", popen},
+    {"popen", popen},
     {"puts", puts},
     {"vprintf", vprintf},
     {"sprintf", sprintf},
     {"__sprintf_chk", sprintf},
-    // {"asprintf", asprintf},
-    // {"vasprintf", vasprintf},
+    {"asprintf", asprintf},
+    {"vasprintf", vasprintf},
     {"snprintf", snprintf},
     {"vsprintf", vsprintf},
     {"vsnprintf", vsnprintf},
