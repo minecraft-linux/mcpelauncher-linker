@@ -39,6 +39,7 @@ struct android_addrinfo* convert_addrinfo(struct addrinfo* res)
 int my_getaddrinfo(const char *node, const char *service,
                    const struct android_addrinfo *ahints,
                    struct android_addrinfo **ares) {
+    return 4;
     struct addrinfo hints;
     if (ahints != NULL) {
         hints.ai_flags = ahints->ai_flags;
@@ -63,6 +64,7 @@ int my_getaddrinfo(const char *node, const char *service,
 }
 
 void my_freeaddrinfo(struct android_addrinfo *ai) {
+    return;
     freeaddrinfo(*((struct addrinfo **) (ai + 1)));
     struct android_addrinfo *ai_next;
     while (ai) {
@@ -99,8 +101,25 @@ int my_getnameinfo (const struct sockaddr *__restrict sa,
                     socklen_t salen, char *__restrict host,
                     socklen_t hostlen, char *__restrict serv,
                     socklen_t servlen, int flags) {
+    return -1;
     int glibc_flags = convert_getnameinfo_flags(flags);
     return getnameinfo(sa, salen, host, hostlen, serv, servlen, glibc_flags);
+}
+
+int stub() {
+    return -1;
+}
+
+int stub3() {
+    return 0;
+}
+
+const char* __stub() {
+    return "NO error";
+}
+
+struct hostent* stub__() {
+    return NULL;
 }
 #endif
 
@@ -112,33 +131,51 @@ struct _hook net_hooks[] = {
     {"freeaddrinfo", my_freeaddrinfo},
     {"getnameinfo", my_getnameinfo},
 #endif
-    {"gethostbyaddr", gethostbyaddr},
-    {"gethostbyname", gethostbyname},
-    {"gethostbyname2", gethostbyname2},
-    {"gethostent", gethostent},
-    {"gai_strerror", gai_strerror},
+    {"gethostbyaddr", stub__},
+    {"gethostbyname", stub__},
+    {"gethostbyname2", stub__},
+    {"gethostent", stub__},
+    {"gai_strerror", __stub},
     /* socket.h */
 #ifndef __APPLE__
-    {"socket", socket},
-    {"bind", bind},
-    {"connect", connect},
-    {"sendto", sendto},
-    {"recvfrom", recvfrom},
-    {"getsockname", getsockname},
-    {"getsockopt", getsockopt},
-    {"setsockopt", setsockopt},
+    // {"socket", socket},
+    // {"bind", bind},
+    // {"connect", connect},
+    // {"sendto", sendto},
+    // {"recvfrom", recvfrom},
+    // {"getsockname", getsockname},
+    // {"getsockopt", getsockopt},
+    // {"setsockopt", setsockopt},
+    {"socket", stub},
+    {"bind", stub3},
+    {"connect", stub3},
+    {"sendto", stub},
+    {"recvfrom", stub},
+    {"getsockname", stub},
+    {"getsockopt", stub},
+    {"setsockopt", stub},
 #endif
-    {"socketpair", socketpair},
-    {"getpeername", getpeername},
-    {"send", send},
-    {"recv", recv},
-    {"sendmsg", sendmsg},
+    // {"socketpair", socketpair},
+    // {"getpeername", getpeername},
+    // {"send", send},
+    // {"recv", recv},
+    // {"sendmsg", sendmsg},
+    // // {"sendmmsg", sendmmsg},
+    // {"recvmsg", recvmsg},
+    // // {"recvmmsg", recvmmsg},
+    // {"listen", listen},
+    // {"accept", accept},
+    {"socketpair", stub},
+    {"getpeername", stub},
+    {"send", stub},
+    {"recv", stub},
+    {"sendmsg", stub},
     // {"sendmmsg", sendmmsg},
-    {"recvmsg", recvmsg},
+    {"recvmsg", stub},
     // {"recvmmsg", recvmmsg},
-    {"listen", listen},
-    {"accept", accept},
+    {"listen", stub3},
+    {"accept", stub},
     // {"accept4", accept4},
-    {"shutdown", shutdown},
+    {"shutdown", stub},
     {NULL, NULL}
 };
