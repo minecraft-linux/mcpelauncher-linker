@@ -929,6 +929,13 @@ static int darwin_my_pthread_mutexattr_gettype(pthread_mutexattr_t *__attr,
 static int darwin_my_pthread_mutexattr_settype(pthread_mutexattr_t *__attr,
                                                int __kind)
 {
+#if defined(__APPLE__) && defined(__x86_64__)
+    // NOTICE, APPLE changed PTHREAD_MUTEX_RECURSIVE to != 1 for x86_64
+    // This caused a deep unknown crash
+    if(__kind == 1) {
+        return pthread_mutexattr_settype(hybris_get_real_mutexattr(__attr), PTHREAD_MUTEX_RECURSIVE);
+    }
+#endif
     return pthread_mutexattr_settype(hybris_get_real_mutexattr(__attr), __kind);
 }
 
