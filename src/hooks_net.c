@@ -5,7 +5,6 @@
 
 #include "../include/hybris/hook.h"
 
-#ifndef __APPLE__
 struct android_addrinfo {
     int	ai_flags;	/* AI_PASSIVE, AI_CANONNAME, AI_NUMERICHOST */
     int	ai_family;	/* PF_xxx */
@@ -73,7 +72,6 @@ void my_freeaddrinfo(struct android_addrinfo *ai) {
         ai = ai_next;
     }
 }
-#endif
 
 #define	A_NI_NOFQDN	0x00000001
 #define	A_NI_NUMERICHOST	0x00000002
@@ -96,7 +94,6 @@ int convert_getnameinfo_flags(int flags) {
     return glibc_flags;
 }
 
-#ifndef __APPLE__
 int my_getnameinfo (const struct sockaddr *__restrict sa,
                     socklen_t salen, char *__restrict host,
                     socklen_t hostlen, char *__restrict serv,
@@ -121,23 +118,19 @@ const char* __stub() {
 struct hostent* stub__() {
     return NULL;
 }
-#endif
 
 
 struct _hook net_hooks[] = {
     /* net specifics, to avoid __res_get_state */
-#ifndef __APPLE__
     {"getaddrinfo", my_getaddrinfo},
     {"freeaddrinfo", my_freeaddrinfo},
     {"getnameinfo", my_getnameinfo},
-#endif
     {"gethostbyaddr", stub__},
     {"gethostbyname", stub__},
     {"gethostbyname2", stub__},
     {"gethostent", stub__},
     {"gai_strerror", __stub},
     /* socket.h */
-#ifndef __APPLE__
     // {"socket", socket},
     // {"bind", bind},
     // {"connect", connect},
@@ -154,7 +147,6 @@ struct _hook net_hooks[] = {
     {"getsockname", stub},
     {"getsockopt", stub},
     {"setsockopt", stub},
-#endif
     // {"socketpair", socketpair},
     // {"getpeername", getpeername},
     // {"send", send},
