@@ -1,13 +1,15 @@
 #pragma once
 
 #include <unordered_map>
+#include <dlfcn.h>
 
 extern "C" {
     void* __loader_dlopen(const char* filename, int flags, const void* caller_addr);
     void* __loader_dlsym(void* handle, const char* symbol, const void* caller_addr);
-    int __loader_dl_iterate_phdr(int (*cb)(struct dl_phdr_info* info, size_t size, void* data), void* data);
+    int __loader_dladdr(const void* addr, Dl_info* info);
     int __loader_dlclose(void* handle);
     char* __loader_dlerror();
+    int __loader_dl_iterate_phdr(int (*cb)(struct dl_phdr_info* info, size_t size, void* data), void* data);
 }
 
 namespace linker {
@@ -20,8 +22,8 @@ namespace linker {
         return __loader_dlsym(handle, symbol, nullptr);
     }
 
-    inline int dl_iterate_phdr(int (*cb)(struct dl_phdr_info* info, size_t size, void *data), void *data) {
-        return __loader_dl_iterate_phdr(cb, data);
+    inline int dladdr(const void* addr, Dl_info* info) {
+        return __loader_dladdr(addr, info);
     }
 
     inline int dlclose(void* handle) {
@@ -30,6 +32,10 @@ namespace linker {
 
     inline char *dlerror() {
         return __loader_dlerror();
+    }
+
+    inline int dl_iterate_phdr(int (*cb)(struct dl_phdr_info* info, size_t size, void *data), void *data) {
+        return __loader_dl_iterate_phdr(cb, data);
     }
 
     void init();
