@@ -21,3 +21,8 @@ void *linker::load_library(const char *name, const std::unordered_map<std::strin
 size_t linker::get_library_base(void *handle) {
     return soinfo_from_handle(handle)->base;
 }
+
+extern "C" void __loader_assert(const char* file, int line, const char* msg) {
+    fprintf(stderr, "linker assert failed at %s:%i: %s\n", file, line, msg);
+    abort();
+}

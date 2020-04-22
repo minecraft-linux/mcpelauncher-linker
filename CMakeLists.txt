@@ -14,6 +14,6 @@ target_link_libraries(linker z pthread ${LINKER_LIBS})
 target_include_directories(linker PRIVATE include core/base/include core/liblog/include core/libcutils/include)
 target_include_directories(linker PUBLIC public_include)
 
-if(UNIX)
+if(NOT APPLE)
     target_sources(linker PRIVATE bionic/libc/upstream-openbsd/lib/libc/string/strlcpy.c)
 endif()
