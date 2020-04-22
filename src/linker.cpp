@@ -22,8 +22,14 @@ size_t linker::get_library_base(void *handle) {
     return soinfo_from_handle(handle)->base;
 }
 
-size_t linker::get_library_size(void *handle) {
-    return soinfo_from_handle(handle)->size;
+void linker::get_library_code_region(void *handle, size_t &base, size_t &size) {
+    auto s = soinfo_from_handle(handle);
+    for (auto i = 0; i < s->phnum; i++) {
+        if (s->phdr[i].p_type == PT_LOAD && s->phdr[i].p_flags & PF_X) {
+            base = s->base + s->phdr[i].p_vaddr;
+            size = s->phdr[i].p_memsz;
+        }
+    }
 }
 
 extern "C" void __loader_assert(const char* file, int line, const char* msg) {
