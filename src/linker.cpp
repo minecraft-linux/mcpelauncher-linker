@@ -21,3 +21,7 @@ void *linker::load_library(const char *name, const std::unordered_map<std::strin
 size_t linker::get_library_base(void *handle) {
     return soinfo_from_handle(handle)->base;
 }
+
+size_t linker::get_library_size(void *handle) {
+    return soinfo_from_handle(handle)->size;
+}

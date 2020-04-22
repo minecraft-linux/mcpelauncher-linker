@@ -44,4 +44,6 @@ namespace linker {
 
     size_t get_library_base(void *handle);
 
+    size_t get_library_size(void *handle);
+
 }
