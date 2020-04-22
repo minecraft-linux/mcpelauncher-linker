@@ -14,12 +14,12 @@ extern
 size_t strlcpy(char *dst, const char *src, size_t dsize);
 #else
 #define gettid() 0
-#define __assert my_assert
+#define __assert __loader_assert
 extern 
 #ifdef __cplusplus
 "C"
 #endif
-void my_assert(const char* file, int line, const char* msg);
+void __loader_assert(const char* file, int line, const char* msg);
 /* Used to retry syscalls that can return EINTR. */
 #define TEMP_FAILURE_RETRY(exp) ({         \
     __typeof__(exp) _rc;                   \

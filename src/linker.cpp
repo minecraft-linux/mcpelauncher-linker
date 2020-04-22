@@ -25,3 +25,8 @@ size_t linker::get_library_base(void *handle) {
 size_t linker::get_library_size(void *handle) {
     return soinfo_from_handle(handle)->size;
 }
+
+extern "C" void __loader_assert(const char* file, int line, const char* msg) {
+    fprintf(stderr, "linker assert failed at %s:%i: %s\n", file, line, msg);
+    abort();
+}
