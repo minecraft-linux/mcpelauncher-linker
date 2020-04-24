@@ -1,3 +1,4 @@
+#include <android/versioning.h>
 #include <string.h>
 #define PAGE_SIZE 4096
 #define PAGE_MASK (~(PAGE_SIZE - 1))
@@ -6,7 +7,16 @@
 #define __BIONIC_ALIGN(__value, __alignment) (((__value) + (__alignment)-1) & ~((__alignment)-1))
 #define	__predict_true(exp)	__builtin_expect((exp) != 0, 1)
 #define	__predict_false(exp)	__builtin_expect((exp) != 0, 0)
-// #define gettid() syscall(SYS_gettid)
+#include <features.h>
+#if defined(__GLIBC__) && (__GLIBC__ < 2 || __GLIBC__ == 2 && __GLIBC_MINOR__ < 30)
+#include <unistd.h>
+#include <sys/syscall.h>
+#ifdef SYS_gettid
+#define gettid() syscall(SYS_gettid)
+#else
+#define gettid() 0
+#endif
+#endif
 extern
 #ifdef __cplusplus
 "C"
