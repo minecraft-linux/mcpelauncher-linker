@@ -14,6 +14,10 @@ target_link_libraries(linker z pthread ${LINKER_LIBS})
 target_include_directories(linker PRIVATE include core/base/include core/liblog/include core/libcutils/include)
 target_include_directories(linker PUBLIC public_include)
 
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm.*|ARM.*)" OR CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64.*|AARCH64.*|arm64.*|ARM64.*)")
+    target_sources(linker PRIVATE bionic/linker/arch/arm_neon/linker_gnu_hash_neon.cpp)
+endif()
+
 if(NOT APPLE)
     target_sources(linker PRIVATE bionic/libc/upstream-openbsd/lib/libc/string/strlcpy.c)
 endif()
