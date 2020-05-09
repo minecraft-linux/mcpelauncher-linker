@@ -1,6 +1,7 @@
 #pragma once
 
 #include <unordered_map>
+#include <string>
 #include <dlfcn.h>
 
 extern "C" {
@@ -10,6 +11,7 @@ extern "C" {
     int __loader_dlclose(void* handle);
     char* __loader_dlerror();
     int __loader_dl_iterate_phdr(int (*cb)(struct dl_phdr_info* info, size_t size, void* data), void* data);
+    void __loader_android_update_LD_LIBRARY_PATH(const char* ld_library_path);
 }
 
 namespace linker {
@@ -36,6 +38,10 @@ namespace linker {
 
     inline int dl_iterate_phdr(int (*cb)(struct dl_phdr_info* info, size_t size, void *data), void *data) {
         return __loader_dl_iterate_phdr(cb, data);
+    }
+
+    inline void update_LD_LIBRARY_PATH(const char *ld_library_path) {
+        __loader_android_update_LD_LIBRARY_PATH(ld_library_path);
     }
 
     void init();
