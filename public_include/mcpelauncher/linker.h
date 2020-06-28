@@ -52,4 +52,6 @@ namespace linker {
 
     void get_library_code_region(void *handle, size_t &base, size_t &size);
 
+    int dlclose_unlocked(void* handle);
+
 }

@@ -36,3 +36,9 @@ extern "C" void __loader_assert(const char* file, int line, const char* msg) {
     fprintf(stderr, "linker assert failed at %s:%i: %s\n", file, line, msg);
     abort();
 }
+
+extern int do_dlclose(void* handle);
+
+int linker::dlclose_unlocked(void* handle) {
+    return do_dlclose(handle);
+}
