@@ -13,7 +13,9 @@
 #define __INTRODUCED_IN(...)
 #endif
 
-
+#ifdef __APPLE__
+typedef off_t off64_t;
+#endif
 #include "../bionic/libc/include/android/dlext.h"
 
 extern "C" {
