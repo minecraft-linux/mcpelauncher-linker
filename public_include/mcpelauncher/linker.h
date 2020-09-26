@@ -3,6 +3,18 @@
 #include <unordered_map>
 #include <string>
 #include <dlfcn.h>
+#ifndef __BEGIN_DECLS
+#define __BEGIN_DECLS extern "C" {
+#endif
+#ifndef __END_DECLS
+#define __END_DECLS }
+#endif
+#ifndef __INTRODUCED_IN
+#define __INTRODUCED_IN(...)
+#endif
+
+
+#include "../bionic/libc/include/android/dlext.h"
 
 extern "C" {
     void* __loader_dlopen(const char* filename, int flags, const void* caller_addr);
@@ -12,12 +24,20 @@ extern "C" {
     char* __loader_dlerror();
     int __loader_dl_iterate_phdr(int (*cb)(struct dl_phdr_info* info, size_t size, void* data), void* data);
     void __loader_android_update_LD_LIBRARY_PATH(const char* ld_library_path);
+    void* __loader_android_dlopen_ext(const char* filename,
+                           int flags,
+                           const android_dlextinfo* extinfo,
+                           const void* caller_addr);
 }
 
 namespace linker {
 
     inline void *dlopen(const char* filename, int flags) {
         return __loader_dlopen(filename, flags, nullptr);
+    }
+
+    inline void *dlopen_ext(const char* filename, int flags, const android_dlextinfo* extinfo) {
+        return __loader_android_dlopen_ext(filename, flags, extinfo, nullptr);
     }
 
     inline void *dlsym(void *handle, const char *symbol) {
