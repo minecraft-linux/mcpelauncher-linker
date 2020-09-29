@@ -22,6 +22,11 @@ extern
 "C"
 #endif
 size_t strlcpy(char *dst, const char *src, size_t dsize);
+extern
+#ifdef __cplusplus
+"C"
+#endif
+size_t strlcat(char *dst, const char *src, size_t dsize);
 #else
 #define gettid() 0
 #define __assert __loader_assert

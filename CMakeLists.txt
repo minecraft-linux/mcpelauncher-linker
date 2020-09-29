@@ -24,5 +24,5 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm.*|ARM.*)" OR CMAKE_SYSTEM_PROCESSOR MAT
 endif()
 
 if(NOT APPLE)
-    target_sources(linker PRIVATE bionic/libc/upstream-openbsd/lib/libc/string/strlcpy.c)
+    target_sources(linker PRIVATE bionic/libc/upstream-openbsd/lib/libc/string/strlcpy.c bionic/libc/upstream-openbsd/lib/libc/string/strlcat.c)
 endif()
