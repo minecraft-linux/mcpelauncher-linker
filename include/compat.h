@@ -8,6 +8,7 @@
 #define	__predict_true(exp)	__builtin_expect((exp) != 0, 1)
 #define	__predict_false(exp)	__builtin_expect((exp) != 0, 0)
 #include <features.h>
+#include <stdint.h>
 #if defined(__GLIBC__) && (__GLIBC__ < 2 || __GLIBC__ == 2 && __GLIBC_MINOR__ < 30)
 #include <unistd.h>
 #include <sys/syscall.h>
