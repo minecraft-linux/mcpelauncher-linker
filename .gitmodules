@@ -4,3 +4,4 @@
 [submodule "core"]
 	path = core
 	url = https://android.googlesource.com/platform/system/core
+	shallow = true
