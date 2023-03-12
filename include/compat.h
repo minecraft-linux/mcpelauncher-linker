@@ -1,6 +1,10 @@
 #include <android/versioning.h>
 #include <string.h>
+#if defined(__APPLE__) && defined(__aarch64__)
+#define PAGE_SIZE 16384
+#else
 #define PAGE_SIZE 4096
+#endif
 #define PAGE_MASK (~(PAGE_SIZE - 1))
 #ifndef __APPLE__
 #define DEF_WEAK(a)
