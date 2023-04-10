@@ -34,12 +34,22 @@ extern "C" {
 
 namespace linker {
 
+    size_t get_library_base(void *handle);
+
     inline void *dlopen(const char* filename, int flags) {
-        return __loader_dlopen(filename, flags, nullptr);
+        auto ret = __loader_dlopen(filename, flags, nullptr);
+        if(ret) {
+            printf("loaded %s@%p\n", filename, (void*)linker::get_library_base(ret));
+        }
+        return ret;
     }
 
     inline void *dlopen_ext(const char* filename, int flags, const android_dlextinfo* extinfo) {
-        return __loader_android_dlopen_ext(filename, flags, extinfo, nullptr);
+        auto ret = __loader_android_dlopen_ext(filename, flags, extinfo, nullptr);
+        if(ret) {
+            printf("loaded %s@%p\n", filename, (void*)linker::get_library_base(ret));
+        }
+        return ret;
     }
 
     inline void *dlsym(void *handle, const char *symbol) {
@@ -69,8 +79,6 @@ namespace linker {
     void init();
 
     void *load_library(const char *name, const std::unordered_map<std::string, void*> &symbols);
-
-    size_t get_library_base(void *handle);
 
     void get_library_code_region(void *handle, size_t &base, size_t &size);
 
