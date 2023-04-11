@@ -1,6 +1,8 @@
 #include <mcpelauncher/linker.h>
 
 #include "../bionic/linker/linker_soinfo.h"
+#include "../bionic/linker/linker_debug.h"
+#include <cstdlib>
 
 void solist_init();
 soinfo* soinfo_from_handle(void* handle);
@@ -10,6 +12,10 @@ namespace linker::libdl {
 }
 
 void linker::init() {
+    const char * verbosity = getenv("MCPELAUNCHER_LINKER_VERBOSITY");
+    if(verbosity) {
+        g_ld_debug_verbosity = std::stoi(std::string(verbosity));
+    }
     solist_init();
     linker::load_library("libdl.so", linker::libdl::get_dl_symbols());
 }
