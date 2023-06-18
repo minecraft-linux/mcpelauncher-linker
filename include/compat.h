@@ -7,7 +7,11 @@
 #define __BIONIC_ALIGN(__value, __alignment) (((__value) + (__alignment)-1) & ~((__alignment)-1))
 #define	__predict_true(exp)	__builtin_expect((exp) != 0, 1)
 #define	__predict_false(exp)	__builtin_expect((exp) != 0, 0)
+#ifndef _WIN32
 #include <features.h>
+#else
+typedef long long off64_t;
+#endif
 #include <stdint.h>
 #if defined(__GLIBC__) && (__GLIBC__ < 2 || __GLIBC__ == 2 && __GLIBC_MINOR__ < 30)
 #include <unistd.h>
@@ -28,6 +32,22 @@ extern
 "C"
 #endif
 size_t strlcat(char *dst, const char *src, size_t dsize);
+
+static char *
+stpcpy(char *to, const char *from)
+{
+	for (; (*to = *from) != '\0'; ++from, ++to);
+	return(to);
+}
+#define __LP64__
+#define O_CLOEXEC 0
+#define TEMP_FAILURE_RETRY(exp) ([&](){         \
+    decltype(exp) _rc;                   \
+    do {                                   \
+        _rc = (exp);                       \
+    } while (_rc == -1 && errno == EINTR); \
+    return _rc; })()
+
 #else
 #define gettid() 0
 #define __assert __loader_assert
