@@ -3,5 +3,5 @@
 	url = https://github.com/minecraft-linux/android_bionic
 [submodule "core"]
 	path = core
-	url = https://android.googlesource.com/platform/system/core
+	url = https://github.com/minecraft-linux/android_core
 	shallow = true
