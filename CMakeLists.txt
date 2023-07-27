@@ -28,5 +28,5 @@ if(NOT APPLE)
 endif()
 
 add_executable(linker-test src/linker-test.cpp)
-target_link_libraries(linker-test linker)
+target_link_libraries(linker-test linker Ws2_32)
 target_include_directories(linker-test PRIVATE include)
