@@ -1078,16 +1078,6 @@ template<auto symbols, size_t i, size_t max> void InsertAbort(std::vector<mcpela
     }
 }
 
-// template<size_t s> void InsertAbort<s, s>(std::vector<mcpelauncher_hook_t> &hooks) {
-
-// }
-// template<class T> struct Wrap;
-// template<class R, class ...P> struct Wrap<R(P...)> {
-//     __attribute__((sysv_abi)) R invoke(R(P...) f, P ...args) {
-//         return f(args...);
-//     }
-// };
-
 template<auto F, class T> struct Impl;
 template<auto F, class R, class ...P> struct Impl<F, R(P...)> {
     __attribute__((sysv_abi)) static R invoke(P ...args) {
@@ -1099,6 +1089,10 @@ template<auto F, class R, class ...P> struct Impl<F, R(*)(P...)> : Impl<F, R(P..
 template<auto F> struct Wrap : Impl<F, decltype(F)> {
     using Impl<F, decltype(F)>::invoke;
 };
+
+template<auto F> constexpr auto AsSysV = &Impl<F, decltype(F)>::invoke;
+
+// std::is_same_v
 
 // #include <GLFW/glfw3.h>
 #include <math.h>
@@ -1218,9 +1212,7 @@ template<auto F, class ...P> struct Impl<F, void(P...)> {
 };
 template<auto F, class R, class ...P> struct Impl<F, R(*)(P...)> : Impl<F, R(P...)> {};
 
-template<auto F> struct Wrap : Impl<F, decltype(F)> {
-    using Impl<F, decltype(F)>::invoke;
-};
+template<auto F> constexpr auto AsSysV = &Impl<F, decltype(F)>::invoke;
 }
 
 namespace convwrap {
@@ -1265,9 +1257,7 @@ template<auto F, class ...P> struct Impl<F, void(P...)> {
 };
 template<auto F, class R, class ...P> struct Impl<F, R(*)(P...)> : Impl<F, R(P...)> {};
 
-template<auto F> struct Wrap : Impl<F, decltype(F)> {
-    using Impl<F, decltype(F)>::invoke;
-};
+template <auto F> constexpr auto AsSysV = &Impl<F, decltype(F)>::invoke;
 }
 
 long long gettid() {
@@ -2160,127 +2150,127 @@ int wmain(int argc, const wchar_t **wargv) {
     hooks.emplace_back(mcpelauncher_hook_t{"pthread_rwlock_trywrlock", reinterpret_cast<void*>(&pthread_rwlock_trywrlock)});
 
     // memchr()
-    hooks.emplace_back(mcpelauncher_hook_t{"memcpy", reinterpret_cast<void*>(&Wrap<memcpy>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"memchr", reinterpret_cast<void*>(&Wrap<(const void * (*)(const void *_Buf, int _Val, size_t _MaxCount))&memchr>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"memmove", reinterpret_cast<void*>(&Wrap<memmove>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"memcmp", reinterpret_cast<void*>(&Wrap<memcmp>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"memset", reinterpret_cast<void*>(&Wrap<memset>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"strcpy", reinterpret_cast<void*>(&Wrap<strcpy>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"strncpy", reinterpret_cast<void*>(&Wrap<strncpy>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"strcmp", reinterpret_cast<void*>(&Wrap<strcmp>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"strncmp", reinterpret_cast<void*>(&Wrap<strncmp>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"strchr", reinterpret_cast<void*>(&Wrap<(char *(*)( char *str, int ch ))strchr>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"strrchr", reinterpret_cast<void*>(&Wrap<(char *(*)( char *str, int ch ))strrchr>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"strdup", reinterpret_cast<void*>(&Wrap<strdup>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"strcat", reinterpret_cast<void*>(&Wrap<strcat>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"strlen", reinterpret_cast<void*>(&Wrap<strlen>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"strerror", reinterpret_cast<void*>(&Wrap<strerror>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"perror", reinterpret_cast<void*>(&Wrap<perror>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"fopen", reinterpret_cast<void*>(&convwrap::Wrap<__fopen>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"fdopen", reinterpret_cast<void*>(&convwrap::Wrap<_fdopen>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"fread", reinterpret_cast<void*>(&convwrap::Wrap<fread>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"fwrite", reinterpret_cast<void*>(&convwrap::Wrap<fwrite>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"feof", reinterpret_cast<void*>(&convwrap::Wrap<feof>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"fclose", reinterpret_cast<void*>(&convwrap::Wrap<fclose>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"flockfile", reinterpret_cast<void*>(&convwrap::Wrap<_lock_file>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"funlockfile", reinterpret_cast<void*>(&convwrap::Wrap<_unlock_file>::invoke)});
+    hooks.emplace_back(mcpelauncher_hook_t{"memcpy", reinterpret_cast<void*>(AsSysV<memcpy>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"memchr", reinterpret_cast<void*>(AsSysV<(const void * (*)(const void *_Buf, int _Val, size_t _MaxCount))&memchr>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"memmove", reinterpret_cast<void*>(AsSysV<memmove>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"memcmp", reinterpret_cast<void*>(AsSysV<memcmp>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"memset", reinterpret_cast<void*>(AsSysV<memset>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"strcpy", reinterpret_cast<void*>(AsSysV<strcpy>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"strncpy", reinterpret_cast<void*>(AsSysV<strncpy>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"strcmp", reinterpret_cast<void*>(AsSysV<strcmp>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"strncmp", reinterpret_cast<void*>(AsSysV<strncmp>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"strchr", reinterpret_cast<void*>(AsSysV<(char *(*)( char *str, int ch ))strchr>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"strrchr", reinterpret_cast<void*>(AsSysV<(char *(*)( char *str, int ch ))strrchr>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"strdup", reinterpret_cast<void*>(AsSysV<strdup>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"strcat", reinterpret_cast<void*>(AsSysV<strcat>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"strlen", reinterpret_cast<void*>(AsSysV<strlen>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"strerror", reinterpret_cast<void*>(AsSysV<strerror>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"perror", reinterpret_cast<void*>(AsSysV<perror>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"fopen", reinterpret_cast<void*>(convwrap::AsSysV<__fopen>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"fdopen", reinterpret_cast<void*>(convwrap::AsSysV<_fdopen>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"fread", reinterpret_cast<void*>(convwrap::AsSysV<fread>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"fwrite", reinterpret_cast<void*>(convwrap::AsSysV<fwrite>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"feof", reinterpret_cast<void*>(convwrap::AsSysV<feof>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"fclose", reinterpret_cast<void*>(convwrap::AsSysV<fclose>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"flockfile", reinterpret_cast<void*>(convwrap::AsSysV<_lock_file>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"funlockfile", reinterpret_cast<void*>(convwrap::AsSysV<_unlock_file>)});
     // TODO look into libc-shim
     hooks.emplace_back(mcpelauncher_hook_t{"__sF", reinterpret_cast<void*>(convwrap::__sF)});
-    hooks.emplace_back(mcpelauncher_hook_t{"getc_unlocked", reinterpret_cast<void*>(&convwrap::Wrap<_getc_nolock>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"putc_unlocked", reinterpret_cast<void*>(&convwrap::Wrap<_putc_nolock>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"fputc", reinterpret_cast<void*>(&convwrap::Wrap<fputc>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"putc", reinterpret_cast<void*>(&convwrap::Wrap<putc>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"fflush", reinterpret_cast<void*>(&convwrap::Wrap<fflush>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"fileno", reinterpret_cast<void*>(&convwrap::Wrap<fileno>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"ferror", reinterpret_cast<void*>(&convwrap::Wrap<ferror>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"fgetwc", reinterpret_cast<void*>(&convwrap::Wrap<__fgetwc>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"fputwc", reinterpret_cast<void*>(&convwrap::Wrap<__fputwc>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"ungetwc", reinterpret_cast<void*>(&convwrap::Wrap<ungetwc>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"setvbuf", reinterpret_cast<void*>(&convwrap::Wrap<__setvbuf>::invoke)});
+    hooks.emplace_back(mcpelauncher_hook_t{"getc_unlocked", reinterpret_cast<void*>(convwrap::AsSysV<_getc_nolock>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"putc_unlocked", reinterpret_cast<void*>(convwrap::AsSysV<_putc_nolock>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"fputc", reinterpret_cast<void*>(convwrap::AsSysV<fputc>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"putc", reinterpret_cast<void*>(convwrap::AsSysV<putc>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"fflush", reinterpret_cast<void*>(convwrap::AsSysV<fflush>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"fileno", reinterpret_cast<void*>(convwrap::AsSysV<fileno>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"ferror", reinterpret_cast<void*>(convwrap::AsSysV<ferror>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"fgetwc", reinterpret_cast<void*>(convwrap::AsSysV<__fgetwc>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"fputwc", reinterpret_cast<void*>(convwrap::AsSysV<__fputwc>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"ungetwc", reinterpret_cast<void*>(convwrap::AsSysV<ungetwc>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"setvbuf", reinterpret_cast<void*>(convwrap::AsSysV<__setvbuf>)});
 //     _IOFBF
 // _IOLBF	line buffering
 // _IONBF	no buffering
-    hooks.emplace_back(mcpelauncher_hook_t{"close", reinterpret_cast<void*>(&Wrap<__close>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"__libc_shim_open_3", reinterpret_cast<void*>(&Wrap<__open_3>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"__open_2", reinterpret_cast<void*>(&Wrap<__open_2>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"stat", reinterpret_cast<void*>(&Wrap<__stat>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"lstat", reinterpret_cast<void*>(&Wrap<__lstat>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"fstat", reinterpret_cast<void*>(&Wrap<__fstat>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"mkdir", reinterpret_cast<void*>(&Wrap<__mkdir>::invoke)});
+    hooks.emplace_back(mcpelauncher_hook_t{"close", reinterpret_cast<void*>(AsSysV<__close>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"__libc_shim_open_3", reinterpret_cast<void*>(AsSysV<__open_3>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"__open_2", reinterpret_cast<void*>(AsSysV<__open_2>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"stat", reinterpret_cast<void*>(AsSysV<__stat>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"lstat", reinterpret_cast<void*>(AsSysV<__lstat>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"fstat", reinterpret_cast<void*>(AsSysV<__fstat>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"mkdir", reinterpret_cast<void*>(AsSysV<__mkdir>)});
     
-    hooks.emplace_back(mcpelauncher_hook_t{"read", reinterpret_cast<void*>(&Wrap<_read>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"__read_chk", reinterpret_cast<void*>(&Wrap<__read_chk>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"write", reinterpret_cast<void*>(&Wrap<_write>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"socket", reinterpret_cast<void*>(&sconvwrap::Wrap<socket>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"recv", reinterpret_cast<void*>(&sconvwrap::Wrap<recv>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"send", reinterpret_cast<void*>(&sconvwrap::Wrap<send>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"accept", reinterpret_cast<void*>(&sconvwrap::Wrap<accept>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"poll", reinterpret_cast<void*>(&sconvwrap::Wrap<WSAPoll>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"select", reinterpret_cast<void*>(&sconvwrap::Wrap<select>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"gettid", reinterpret_cast<void*>(&Wrap<gettid>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"newlocale", reinterpret_cast<void*>(&Wrap<newlocale>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"uselocale", reinterpret_cast<void*>(&Wrap<uselocale>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"freelocale", reinterpret_cast<void*>(&Wrap<_free_locale>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"__ctype_get_mb_cur_max", reinterpret_cast<void*>(&Wrap<__ctype_get_mb_cur_max>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"mbtowc", reinterpret_cast<void*>(&Wrap<__mbtowc>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"__cxa_atexit", reinterpret_cast<void*>(&Wrap<__cxa_atexit>::invoke)});
+    hooks.emplace_back(mcpelauncher_hook_t{"read", reinterpret_cast<void*>(AsSysV<_read>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"__read_chk", reinterpret_cast<void*>(AsSysV<__read_chk>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"write", reinterpret_cast<void*>(AsSysV<_write>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"socket", reinterpret_cast<void*>(sconvwrap::AsSysV<socket>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"recv", reinterpret_cast<void*>(sconvwrap::AsSysV<recv>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"send", reinterpret_cast<void*>(sconvwrap::AsSysV<send>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"accept", reinterpret_cast<void*>(sconvwrap::AsSysV<accept>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"poll", reinterpret_cast<void*>(sconvwrap::AsSysV<WSAPoll>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"select", reinterpret_cast<void*>(sconvwrap::AsSysV<select>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"gettid", reinterpret_cast<void*>(AsSysV<gettid>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"newlocale", reinterpret_cast<void*>(AsSysV<newlocale>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"uselocale", reinterpret_cast<void*>(AsSysV<uselocale>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"freelocale", reinterpret_cast<void*>(AsSysV<_free_locale>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"__ctype_get_mb_cur_max", reinterpret_cast<void*>(AsSysV<__ctype_get_mb_cur_max>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"mbtowc", reinterpret_cast<void*>(AsSysV<__mbtowc>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"__cxa_atexit", reinterpret_cast<void*>(AsSysV<__cxa_atexit>)});
     // MALLOC
-    // hooks.emplace_back(mcpelauncher_hook_t{"malloc", reinterpret_cast<void*>(&Wrap<malloc>::invoke)});
-    // hooks.emplace_back(mcpelauncher_hook_t{"realloc", reinterpret_cast<void*>(&Wrap<realloc>::invoke)});
-    // hooks.emplace_back(mcpelauncher_hook_t{"free", reinterpret_cast<void*>(&Wrap<free>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"posix_memalign", reinterpret_cast<void*>(&Wrap<posix_memalign>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"malloc", reinterpret_cast<void*>(&Wrap<__malloc>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"realloc", reinterpret_cast<void*>(&Wrap<__realloc>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"free", reinterpret_cast<void*>(&Wrap<__free>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"calloc", reinterpret_cast<void*>(&Wrap<__calloc>::invoke)});
+    // hooks.emplace_back(mcpelauncher_hook_t{"malloc", reinterpret_cast<void*>(AsSysV<malloc>)});
+    // hooks.emplace_back(mcpelauncher_hook_t{"realloc", reinterpret_cast<void*>(AsSysV<realloc>)});
+    // hooks.emplace_back(mcpelauncher_hook_t{"free", reinterpret_cast<void*>(AsSysV<free>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"posix_memalign", reinterpret_cast<void*>(AsSysV<posix_memalign>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"malloc", reinterpret_cast<void*>(AsSysV<__malloc>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"realloc", reinterpret_cast<void*>(AsSysV<__realloc>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"free", reinterpret_cast<void*>(AsSysV<__free>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"calloc", reinterpret_cast<void*>(AsSysV<__calloc>)});
 
     
     //OTHER
-    hooks.emplace_back(mcpelauncher_hook_t{"getpagesize", reinterpret_cast<void*>(&Wrap<getpagesize>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"nextafter", reinterpret_cast<void*>(&Wrap<_nextafter>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"nextafterf", reinterpret_cast<void*>(&Wrap<_nextafterf>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"exp2f", reinterpret_cast<void*>(&Wrap<exp2f>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"exp2", reinterpret_cast<void*>(&Wrap<(double(*)(double))exp2>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"sinf", reinterpret_cast<void*>(&Wrap<sinf>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"sin", reinterpret_cast<void*>(&Wrap<(double(*)(double))sin>::invoke)});
+    hooks.emplace_back(mcpelauncher_hook_t{"getpagesize", reinterpret_cast<void*>(AsSysV<getpagesize>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"nextafter", reinterpret_cast<void*>(AsSysV<_nextafter>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"nextafterf", reinterpret_cast<void*>(AsSysV<_nextafterf>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"exp2f", reinterpret_cast<void*>(AsSysV<exp2f>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"exp2", reinterpret_cast<void*>(AsSysV<(double(*)(double))exp2>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"sinf", reinterpret_cast<void*>(AsSysV<sinf>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"sin", reinterpret_cast<void*>(AsSysV<(double(*)(double))sin>)});
     hooks.emplace_back(mcpelauncher_hook_t{"clock_gettime", reinterpret_cast<void*>(clock_gettime)});
     hooks.emplace_back(mcpelauncher_hook_t{"gettimeofday", reinterpret_cast<void*>(gettimeofday)});
-    hooks.emplace_back(mcpelauncher_hook_t{"__errno", reinterpret_cast<void*>(&Wrap<_errno>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"strerror_r", reinterpret_cast<void*>(&Wrap<strerror_r>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"time", reinterpret_cast<void*>(&Wrap<time>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"localtime_r", reinterpret_cast<void*>(&Wrap<localtime_r>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"strftime", reinterpret_cast<void*>(&Wrap<strftime>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"sigaction", reinterpret_cast<void*>(&Wrap<sigaction>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"pipe", reinterpret_cast<void*>(&Wrap<pipe>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"android_set_abort_message", reinterpret_cast<void*>(&Wrap<android_set_abort_message>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"sysconf", reinterpret_cast<void*>(&Wrap<sysconf>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"strtol", reinterpret_cast<void*>(&Wrap<strtoll>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"strtoll", reinterpret_cast<void*>(&Wrap<strtoll>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"strtoul", reinterpret_cast<void*>(&Wrap<strtoull>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"strtoull", reinterpret_cast<void*>(&Wrap<strtoull>::invoke)});
+    hooks.emplace_back(mcpelauncher_hook_t{"__errno", reinterpret_cast<void*>(AsSysV<_errno>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"strerror_r", reinterpret_cast<void*>(AsSysV<strerror_r>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"time", reinterpret_cast<void*>(AsSysV<time>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"localtime_r", reinterpret_cast<void*>(AsSysV<localtime_r>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"strftime", reinterpret_cast<void*>(AsSysV<strftime>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"sigaction", reinterpret_cast<void*>(AsSysV<sigaction>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"pipe", reinterpret_cast<void*>(AsSysV<pipe>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"android_set_abort_message", reinterpret_cast<void*>(AsSysV<android_set_abort_message>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"sysconf", reinterpret_cast<void*>(AsSysV<sysconf>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"strtol", reinterpret_cast<void*>(AsSysV<strtoll>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"strtoll", reinterpret_cast<void*>(AsSysV<strtoll>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"strtoul", reinterpret_cast<void*>(AsSysV<strtoull>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"strtoull", reinterpret_cast<void*>(AsSysV<strtoull>)});
     hooks.emplace_back(mcpelauncher_hook_t{"prctl", reinterpret_cast<void*>(prctl)});
 
     // FORTIFY
 
-    hooks.emplace_back(mcpelauncher_hook_t{"__strcpy_chk", reinterpret_cast<void*>(&Wrap<__strcpy_chk>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"__strcat_chk", reinterpret_cast<void*>(&Wrap<__strcat_chk>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"__strncat_chk", reinterpret_cast<void*>(&Wrap<__strncat_chk>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"__strncpy_chk", reinterpret_cast<void*>(&Wrap<__strncpy_chk>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"__strncpy_chk2", reinterpret_cast<void*>(&Wrap<__strncpy_chk2>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"__strlen_chk", reinterpret_cast<void*>(&Wrap<strlen_chk>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"__strchr_chk", reinterpret_cast<void*>(&Wrap<strchr_chk>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"__memcpy_chk", reinterpret_cast<void*>(&Wrap<__memcpy_chk>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"__memmove_chk", reinterpret_cast<void*>(&Wrap<__memmove_chk>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"__memset_chk", reinterpret_cast<void*>(&Wrap<__memset_chk>::invoke)});
+    hooks.emplace_back(mcpelauncher_hook_t{"__strcpy_chk", reinterpret_cast<void*>(AsSysV<__strcpy_chk>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"__strcat_chk", reinterpret_cast<void*>(AsSysV<__strcat_chk>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"__strncat_chk", reinterpret_cast<void*>(AsSysV<__strncat_chk>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"__strncpy_chk", reinterpret_cast<void*>(AsSysV<__strncpy_chk>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"__strncpy_chk2", reinterpret_cast<void*>(AsSysV<__strncpy_chk2>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"__strlen_chk", reinterpret_cast<void*>(AsSysV<strlen_chk>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"__strchr_chk", reinterpret_cast<void*>(AsSysV<strchr_chk>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"__memcpy_chk", reinterpret_cast<void*>(AsSysV<__memcpy_chk>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"__memmove_chk", reinterpret_cast<void*>(AsSysV<__memmove_chk>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"__memset_chk", reinterpret_cast<void*>(AsSysV<__memset_chk>)});
   
     // END
     
     //libandroid
 
 
-    hooks.emplace_back(mcpelauncher_hook_t{"AAssetManager_open", reinterpret_cast<void*>(&Wrap<AAssetManager_open>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"AAsset_getLength", reinterpret_cast<void*>(&Wrap<AAsset_getLength>::invoke)});
-    hooks.emplace_back(mcpelauncher_hook_t{"AAsset_read", reinterpret_cast<void*>(&Wrap<AAsset_read>::invoke)});
+    hooks.emplace_back(mcpelauncher_hook_t{"AAssetManager_open", reinterpret_cast<void*>(AsSysV<AAssetManager_open>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"AAsset_getLength", reinterpret_cast<void*>(AsSysV<AAsset_getLength>)});
+    hooks.emplace_back(mcpelauncher_hook_t{"AAsset_read", reinterpret_cast<void*>(AsSysV<AAsset_read>)});
     
     struct Looper {
       int fdin;
@@ -2315,7 +2305,7 @@ int wmain(int argc, const wchar_t **wargv) {
 
       return -3;
     };
-    hooks.emplace_back(mcpelauncher_hook_t{"ALooper_pollAll", (void *)Wrap<l0>::invoke});
+    hooks.emplace_back(mcpelauncher_hook_t{"ALooper_pollAll", (void *)AsSysV<l0>});
     static constexpr auto l1 = +[](void *loopere, int fd, int ident, int events, int(*callback)(int fd, int events, void *data), void *data) {
       int fdin = _dup(fd);
       int fd_[2];
@@ -2328,12 +2318,12 @@ int wmain(int argc, const wchar_t **wargv) {
       looper.alooperov.hEvent = CreateEventW(NULL, TRUE, TRUE, NULL);
       return 1;
     };
-    hooks.emplace_back(mcpelauncher_hook_t{"ALooper_addFd", (void *)Wrap<l1>::invoke});
+    hooks.emplace_back(mcpelauncher_hook_t{"ALooper_addFd", (void *)AsSysV<l1>});
     static constexpr auto l2 = +[](void *queue, void *looper2, int ident, void* callback, void *data) {
       looper.indent2 = ident;
       looper.data2 = data;
     };
-    hooks.emplace_back(mcpelauncher_hook_t{"AInputQueue_attachLooper", (void *)Wrap<l2>::invoke});
+    hooks.emplace_back(mcpelauncher_hook_t{"AInputQueue_attachLooper", (void *)AsSysV<l2>});
 
     //END
 
