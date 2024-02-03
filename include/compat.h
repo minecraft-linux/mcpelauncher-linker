@@ -63,4 +63,8 @@ void __loader_assert(const char* file, int line, const char* msg);
 // Returns the address of the next page after address 'x', unless 'x' is
 // itself at the start of a page.
 #define PAGE_END(x) PAGE_START((x) + (PAGE_SIZE-1))
+
+// macos-14 arm64 VM of GitHub error marks them as non existent
+#define	__predict_true(exp)	__builtin_expect((exp) != 0, 1)
+#define	__predict_false(exp)	__builtin_expect((exp) != 0, 0)
 #endif
